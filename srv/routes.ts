@@ -57,6 +57,8 @@ const posts : {
     [key : string] : ForumPost
 } = {};
 
+const saltRounds: number = 10;
+
 export default class Routes extends RouteList {
     @Get
     async foo(req : RouteRequest) {
@@ -76,8 +78,11 @@ export default class Routes extends RouteList {
 
     @Post
     async register(req : RouteRequest, user : User) {
+        const hashedPassword: string = bcrypt.hashSync(user.password, saltRounds);
+        user.password = hashedPassword
+        userDB[user.email] = user;
         return {
-            accessToken: null
+            accessToken: signJwt(user.email)
         }
     }
 

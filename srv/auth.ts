@@ -1,6 +1,6 @@
 
 import jsonwebtoken from 'jsonwebtoken'
-import { StringFormat, Validate, Internal } from './utils';
+import { StringFormat, NumberSign, Validate, Private, Internal } from './utils';
 
 export const secret = "c2d26e94-7b5f-4d63-a821-695f4703c2a2"
 
@@ -11,20 +11,34 @@ export const userDB : {
 export class User {
     // TODO: Task 1 Part 1:
     @Validate
-    @StringFormat(/.*/)
+    @StringFormat(/^[^0-9!"#$%&'()*,\-.\/:;<>?@\[\\\]\^_`{|}~]*$/)
+    username! : string
+
+    @Validate
+    @StringFormat(/^[A-Za-z0-9]{1}[A-Za-z0-9_.-]*@{1}[A-Za-z0-9_.-]+\.[A-Za-z0-9]+$/)
     email! : string
+
+    @Validate
+    @StringFormat(/^[0-9]+[0-9\-]*[0-9]+$/)
+    @Private
+    phone! : string
 
     @Validate
     @Internal
     password! : string
 
+    @Validate
+    @NumberSign('+')
+    @Private
+    age! : number
     // End of Task 1 Part 1
 }
 
-export function signJwt(sub : string) {
+export function signJwt(sub : string): string {
     // Task 1 Part 3:
-
-    return null;
+    return jsonwebtoken.sign({sub: sub}, secret, {
+        algorithm: "HS256",
+    });
 
     // End of task 1 part 3
 }

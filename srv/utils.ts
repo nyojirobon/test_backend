@@ -133,8 +133,10 @@ export function Auth(target: any, propertyKey: string, descriptor: PropertyDescr
 
 const validatesMetadataKey = Symbol("validates");
 const stringFormatMetadataKey = Symbol("stringFormat");
+const numberSignMetadataKey = Symbol("numberSign");
 const visibilityMetadataKey = Symbol("visibility");
 
+export type numberSignType = '+' | '-'
 export type VisibilityType = 'public' | 'private' | 'internal'
 
 export function Validate(target: any, propertyKey : string) : void {
@@ -158,6 +160,16 @@ export function StringFormat(format : RegExp | string) {
         } = Reflect.getOwnMetadata(stringFormatMetadataKey, target) || [];
         validates[propertyKey] = reg;
         Reflect.defineMetadata( stringFormatMetadataKey, validates, target);
+    }
+}
+
+export function NumberSign(sign : numberSignType) {
+    return (target: any, propertyKey : string) => {
+        let validates: {
+            [key : string] : numberSignType
+        } = Reflect.getOwnMetadata(numberSignMetadataKey, target) || [];
+        validates[propertyKey] = sign;
+        Reflect.defineMetadata( numberSignMetadataKey, validates, target);
     }
 }
 
@@ -195,14 +207,21 @@ export function ItemType(type : any) {
 }
 
 export function toJSON(value : any, type : any, mode : VisibilityType) {
-    return convertType(value, type, undefined, undefined, mode);
+    return convertType(value, type, undefined, undefined, undefined, mode);
 }
 
-export function convertType(value : any, type : any, itemType? : any, stringFormat? : RegExp, mode? : VisibilityType) : any {
+export function convertType(value : any, type : any, itemType? : any, stringFormat? : RegExp, numberSign? : numberSignType, mode? : VisibilityType) : any {
     if(type === Object) return value;
     else if(type === Number) {
         const v = +value;
         if(isNaN(v)) throw new Error("Invalid Number Format")
+        if (numberSign) {
+            if(numberSign === '+' && v < 0) {
+                throw new Error("Expected Positive Number")
+            } else if(numberSign === '-' && v >= 0) {
+                throw new Error("Expected Negative Number")
+            }
+        }
         return v;
     } else if(type === String) {
         if(value) {
@@ -236,7 +255,7 @@ export function convertType(value : any, type : any, itemType? : any, stringForm
             throw new Error("Expected Array")
         }
         if(itemType) {
-            return value.map(it =>  convertType(it, itemType, undefined, undefined, mode))
+            return value.map(it =>  convertType(it, itemType, undefined, undefined, undefined, mode))
         } else {
             return value;
         }
@@ -255,6 +274,9 @@ export function convertType(value : any, type : any, itemType? : any, stringForm
         const stringFormats : {
             [key : string] : RegExp
         } = Reflect.getMetadata(stringFormatMetadataKey, target) || {};
+        const numberSigns : {
+            [key : string] : numberSignType
+        } = Reflect.getMetadata(numberSignMetadataKey, target) || {};
         const modes : {
             [key : string] : VisibilityType
         } = Reflect.getMetadata(visibilityMetadataKey, target) || {};
@@ -271,7 +293,7 @@ export function convertType(value : any, type : any, itemType? : any, stringForm
             }
 
             try {
-                const field = convertType(value[entry[0]], entry[1], itemTypes[entry[0]], stringFormats[entry[0]], mode);
+                const field = convertType(value[entry[0]], entry[1], itemTypes[entry[0]], stringFormats[entry[0]], numberSigns[entry[0]], mode);
                 if(typeof field !== 'number' && !field) {
                     if(optionals.indexOf(entry[0]) === -1) {
                         throw new Error("Missing required field")
