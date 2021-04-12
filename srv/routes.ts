@@ -79,7 +79,7 @@ export default class Routes extends RouteList {
     @Post
     async register(req : RouteRequest, user : User) {
         const hashedPassword: string = bcrypt.hashSync(user.password, saltRounds);
-        user.password = hashedPassword
+        user.password = hashedPassword;
         userDB[user.email] = user;
         return {
             accessToken: signJwt(user.email)
@@ -92,8 +92,17 @@ export default class Routes extends RouteList {
 
     @Post
     async login(req : RouteRequest, request : LoginRequest) {
+        const user: User = userDB[request.email];
+        if (!user) {
+            return { message: 'email not registered' }
+        }
+
+        if (!bcrypt.compareSync(request.password, user.password)) {
+            return { message: 'password does not match' }
+        }
+
         return {
-            accessToken: null
+            accessToken: signJwt(request.email)
         }
     }
 
