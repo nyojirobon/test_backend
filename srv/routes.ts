@@ -57,7 +57,6 @@ class ForumPost {
     @Validate
     postId! : string
 
-    // TODO: Task 3 Part 1:
     @Validate
     @ItemType(User)
     author! : User
@@ -70,8 +69,6 @@ class ForumPost {
 
     @Validate
     updatedAt! : Date
-
-    // End of Task 3 Part 1
 }
 
 const posts : {
@@ -95,8 +92,6 @@ export default class Routes extends RouteList {
         }
     }
 
-    // TODO: Task 1 Part 2:
-
     @Post
     async register(req : RouteRequest, user : User) {
         if (userDB[user.email]) {
@@ -108,10 +103,6 @@ export default class Routes extends RouteList {
             accessToken: signJwt(user.email)
         }
     }
-
-    // End of Task 1 Part 2
-
-    // TODO: Task 2:
 
     @Post
     async login(req : RouteRequest, request : LoginRequest) {
@@ -129,8 +120,6 @@ export default class Routes extends RouteList {
         }
     }
 
-    // End of Task 2
-
     @Get
     @Auth
     async me(req : RouteRequest) {
@@ -141,10 +130,7 @@ export default class Routes extends RouteList {
     async users(req : RouteRequest, params : GetUserRequest) {
         return toJSON(userDB[params.userId], User, "public");
     }
-    
-    // TODO: Task 3:
 
-    // Task 3 Part 1: List All Posts
     @Get
     async posts(req : RouteRequest) {
         const postArray : ForumPost[] = Object.values(posts).sort((a, b) => {
@@ -159,7 +145,6 @@ export default class Routes extends RouteList {
         return convertType(postArray, Array, ForumPost, undefined, undefined, "public");
     }
 
-    // Task 3 Part 2: Create a post associated with current user
     @Post("/posts")
     @Auth
     async createPost(req : RouteRequest, request : PostContentRequest) {
@@ -181,7 +166,6 @@ export default class Routes extends RouteList {
         return toJSON(post, ForumPost, "public");
     }
 
-    // Task 3 Part 3: Update a post
     @Patch("/posts/:postId")
     @Auth
     async patchPost(req : RouteRequest, body : PostContentRequest, params : PostRequest) {
@@ -204,7 +188,6 @@ export default class Routes extends RouteList {
         return toJSON(post, ForumPost, "public");
     }
 
-    // Delete a post
     @Delete("/posts/:postId")
     @Auth
     async deletePost(req : RouteRequest, params : PostRequest) {
@@ -226,7 +209,6 @@ export default class Routes extends RouteList {
         return { message: `post (ID: ${post.postId}) deleted` }
     }
 
-    // End of Task 3
 
     
 }

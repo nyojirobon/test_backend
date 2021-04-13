@@ -308,9 +308,7 @@ export function convertType(value : any, type : any, itemType? : any, stringForm
     }
 }
 
+// Generate almost completely unique string
 export function getUniqueString() : string {
-    return (
-      new Date().getTime().toString(16) +
-      Math.floor(1000 * Math.random()).toString(16)
-    );
+    return new Date().getTime().toString(16) + Math.floor(1000 * Math.random()).toString(16);
 }

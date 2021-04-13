@@ -9,7 +9,6 @@ export const userDB : {
 } = {};
 
 export class User {
-    // TODO: Task 1 Part 1:
     @Validate
     @StringFormat(/^[^0-9!"#$%&'()*,\-.\/:;<>?@\[\\\]\^_`{|}~]*$/)
     username! : string
@@ -31,16 +30,12 @@ export class User {
     @NumberSign('+')
     @Private
     age! : number
-    // End of Task 1 Part 1
 }
 
 export function signJwt(sub : string): string {
-    // Task 1 Part 3:
     return jsonwebtoken.sign({sub: sub}, secret, {
         algorithm: "HS256",
     });
-
-    // End of task 1 part 3
 }
 
 export function checkJwt(token : string) : User {

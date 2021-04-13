@@ -54,7 +54,6 @@ export default class HelloWorld extends Vue {
     async createPost() {
         try {
             this.createPostResp = await axios.post('/posts', {
-                // TODO: Task 3 Part 2
                 content: this.content,
             }, {
                 headers: {
@@ -73,7 +72,6 @@ export default class HelloWorld extends Vue {
     async patchPost() {
         try {
             this.patchPostResp = await axios.patch(`/posts/${this.id}`, {
-                // TODO: Task 3 Part 3
                 content: this.content2,
             }, {
                 headers: {
