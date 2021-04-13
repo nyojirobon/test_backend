@@ -212,7 +212,7 @@ export default class Routes extends RouteList {
 
         delete posts[post.postId]
 
-        return { message: `post (ID: ${post.postId}) deleted` }
+        return { message: `Post (ID: ${post.postId}) deleted` }
     }
 
 
