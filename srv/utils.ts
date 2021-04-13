@@ -38,7 +38,7 @@ export function Api(target: any, propertyKey?: string, descriptor?: PropertyDesc
         return function (target: RouteList, propertyKey: string, descriptor: PropertyDescriptor) {
             const auth = Reflect.getMetadata(authMetadataKey, target, propertyKey);
             const routeList = target[RouteListSymbol] || (target[RouteListSymbol] = {});
-            routeList[routePath] = {
+            routeList[propertyKey] = {
                 name: propertyKey,
                 path: routePath,
                 method: 'GET',
@@ -81,7 +81,7 @@ export function Post(target: any, propertyKey?: string, descriptor?: PropertyDes
         })(target, propertyKey, descriptor);
     } else {
         return Api({
-            path: '/' + propertyKey,
+            path: target,
             method: 'POST',
         })
     }
@@ -100,7 +100,7 @@ export function Patch(target: any, propertyKey?: string, descriptor?: PropertyDe
         })(target, propertyKey, descriptor);
     } else {
         return Api({
-            path: '/' + propertyKey,
+            path: target,
             method: 'PATCH',
         })
     }
@@ -119,7 +119,7 @@ export function Delete(target: any, propertyKey?: string, descriptor?: PropertyD
         })(target, propertyKey, descriptor);
     } else {
         return Api({
-            path: '/' + propertyKey,
+            path: target,
             method: 'DELETE',
         })
     }
@@ -306,4 +306,11 @@ export function convertType(value : any, type : any, itemType? : any, stringForm
         }
         return target;
     }
+}
+
+export function getUniqueString() : string {
+    return (
+      new Date().getTime().toString(16) +
+      Math.floor(1000 * Math.random()).toString(16)
+    );
 }

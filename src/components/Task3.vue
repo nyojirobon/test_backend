@@ -16,7 +16,7 @@
     <response-viewer :response="patchPostResp"/>
 
     <h1>Delete Post</h1>
-    <div><label>ID</label><input v-model="id" /></div>
+    <div><label>ID</label><input v-model="id2" /></div>
     <button @click="deletePost">Delete</button>
     <response-viewer :response="deletePostResp"/>
 
@@ -37,6 +37,7 @@ export default class HelloWorld extends Vue {
     content = ""
     content2 = ""
     id = ""
+    id2 = ""
 
     async run() {
         try {
@@ -54,6 +55,11 @@ export default class HelloWorld extends Vue {
         try {
             this.createPostResp = await axios.post('/posts', {
                 // TODO: Task 3 Part 2
+                content: this.content,
+            }, {
+                headers: {
+                    'Authorization': this.$store.state.accessToken ? `Bearer ${this.$store.state.accessToken}` : ''
+                },
             });
         } catch(e) {
             if(e.response) {
@@ -68,6 +74,11 @@ export default class HelloWorld extends Vue {
         try {
             this.patchPostResp = await axios.patch(`/posts/${this.id}`, {
                 // TODO: Task 3 Part 3
+                content: this.content2,
+            }, {
+                headers: {
+                    'Authorization': this.$store.state.accessToken ? `Bearer ${this.$store.state.accessToken}` : ''
+                },
             });
         } catch(e) {
             if(e.response) {
@@ -80,8 +91,10 @@ export default class HelloWorld extends Vue {
 
     async deletePost() {
         try {
-            this.deletePostResp = await axios.patch(`/posts/${this.id}`, {
-                // TODO: Task 3 Part 4
+            this.deletePostResp = await axios.delete(`/posts/${this.id2}`, {
+                headers: {
+                    'Authorization': this.$store.state.accessToken ? `Bearer ${this.$store.state.accessToken}` : ''
+                }
             });
         } catch(e) {
             if(e.response) {

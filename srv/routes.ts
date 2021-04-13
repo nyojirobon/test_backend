@@ -4,11 +4,16 @@ import {
     Get,
     Optional,
     Post,
+    Patch,
+    Delete,
     RouteList,
     Validate,
+    Public,
     ItemType,
     RouteRequest,
     toJSON,
+    convertType,
+    getUniqueString,
 } from './utils'
 
 import {
@@ -43,12 +48,28 @@ class PostRequest {
     postId! : string
 }
 
+class PostContentRequest {
+    @Validate
+    content! : string
+}
+
 class ForumPost {
+    @Validate
     postId! : string
 
     // TODO: Task 3 Part 1:
+    @Validate
+    @ItemType(User)
+    author! : User
 
+    @Validate
+    content! : string
 
+    @Validate
+    createdAt! : Date
+
+    @Validate
+    updatedAt! : Date
 
     // End of Task 3 Part 1
 }
@@ -78,8 +99,10 @@ export default class Routes extends RouteList {
 
     @Post
     async register(req : RouteRequest, user : User) {
-        const hashedPassword: string = bcrypt.hashSync(user.password, saltRounds);
-        user.password = hashedPassword;
+        if (userDB[user.email]) {
+            throw new Error("Email already registered")
+        }
+        user.password = bcrypt.hashSync(user.password, saltRounds);
         userDB[user.email] = user;
         return {
             accessToken: signJwt(user.email)
@@ -92,13 +115,13 @@ export default class Routes extends RouteList {
 
     @Post
     async login(req : RouteRequest, request : LoginRequest) {
-        const user: User = userDB[request.email];
+        const user : User = userDB[request.email];
         if (!user) {
-            return { message: 'email not registered' }
+            throw new Error("Email not registered")
         }
 
         if (!bcrypt.compareSync(request.password, user.password)) {
-            return { message: 'password does not match' }
+            throw new Error("Password does not match")
         }
 
         return {
@@ -122,23 +145,85 @@ export default class Routes extends RouteList {
     // TODO: Task 3:
 
     // Task 3 Part 1: List All Posts
+    @Get
     async posts(req : RouteRequest) {
-
+        const postArray : ForumPost[] = Object.values(posts).sort((a, b) => {
+            if (a.updatedAt < b.updatedAt) {
+                return 1;
+            }
+            if (a.updatedAt > b.updatedAt) {
+                return -1;
+            }
+            return 0;
+        });
+        return convertType(postArray, Array, ForumPost, undefined, undefined, "public");
     }
 
     // Task 3 Part 2: Create a post associated with current user
-    async createPost(req : RouteRequest) {
+    @Post("/posts")
+    @Auth
+    async createPost(req : RouteRequest, request : PostContentRequest) {
+        if (!req.user) {
+            throw new Error("Login needed")
+        }
 
+        const postId : string = getUniqueString();
+        const currentTime : Date = new Date();
+        const post : ForumPost = {
+            postId: postId,
+            author: req.user,
+            content: request.content,
+            createdAt: currentTime,
+            updatedAt: currentTime,
+        }
+        posts[postId] = post
+
+        return toJSON(post, ForumPost, "public");
     }
 
     // Task 3 Part 3: Update a post
-    async patchPost(req : RouteRequest, body : ForumPost, params : PostRequest) {
+    @Patch("/posts/:postId")
+    @Auth
+    async patchPost(req : RouteRequest, body : PostContentRequest, params : PostRequest) {
+        if (!req.user) {
+            throw new Error("Login needed")
+        }
 
+        const post : ForumPost = posts[params.postId];
+        if (!post) {
+            throw new Error("Post not found")
+        }
+
+        if (req.user.email !== post.author.email) {
+            throw new Error("Only author can update post")
+        }
+
+        post.content = body.content;
+        post.updatedAt = new Date();
+
+        return toJSON(post, ForumPost, "public");
     }
 
     // Delete a post
+    @Delete("/posts/:postId")
+    @Auth
     async deletePost(req : RouteRequest, params : PostRequest) {
+        if (!req.user) {
+            throw new Error("Login needed")
+        }
 
+        const post : ForumPost = posts[params.postId];
+        if (!post) {
+            throw new Error("Post not found")
+        }
+
+        if (req.user.email !== post.author.email) {
+            throw new Error("Only author can delete post")
+        }
+
+        delete posts[post.postId]
+
+        return { message: `post (ID: ${post.postId}) deleted` }
     }
 
     // End of Task 3
