@@ -8,7 +8,6 @@ import {
     Delete,
     RouteList,
     Validate,
-    Public,
     ItemType,
     RouteRequest,
     toJSON,
@@ -75,7 +74,7 @@ const posts : {
     [key : string] : ForumPost
 } = {};
 
-const saltRounds: number = 10;
+const saltRounds : number = 10;
 
 export default class Routes extends RouteList {
     @Get
@@ -133,11 +132,18 @@ export default class Routes extends RouteList {
 
     @Get
     async posts(req : RouteRequest) {
+        // updatedAt desc & createdAt desc
         const postArray : ForumPost[] = Object.values(posts).sort((a, b) => {
             if (a.updatedAt < b.updatedAt) {
                 return 1;
             }
             if (a.updatedAt > b.updatedAt) {
+                return -1;
+            }
+            if (a.createdAt < b.createdAt) {
+                return 1;
+            }
+            if (a.createdAt > b.createdAt) {
                 return -1;
             }
             return 0;
